@@ -22,7 +22,7 @@ Uses TensorBoard to visualize the results
   * Data visualization helper
 
 ## Usage
-```python
+```
 python iris.py [-h] [--visual] [--learning_rate LEARNING_RATE]
                [--filename FILENAME] [--stddev STDDEV]
 
@@ -39,17 +39,17 @@ optional arguments:
 ```
 
 #### Train a new model
-```python
+```
 python iris.py
 ```
 
 #### Test a model
-```python
+```
 python iris.py --load
 ```
 
 #### Custom training
-```python
+```
 python iris.py --visual --learning_rate 0.1 --filename my_model --stddev 0.5
 ```
 
