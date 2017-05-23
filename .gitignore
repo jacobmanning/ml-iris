@@ -1,3 +1,4 @@
 saved_models/*
 tensorboard/*
 !tensorboard/README.md
+!saved_models/README.md
