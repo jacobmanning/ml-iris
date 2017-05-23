@@ -16,7 +16,7 @@ import seaborn as sns
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 __author__ = 'Jacob Manning'
 __email__ = 'jacobmanning@pitt.edu'
 
@@ -97,7 +97,7 @@ def initial_plots(df):
     plt.show()
 
 def train(X_train, y_train, X_valid, y_valid, X_test, y_test, 
-            learning_rate=0.05, load=False):
+            learning_rate=0.05, load=False, filename='iris_model'):
     # parameters for size of W, b, x, y
     n_samples, n_features = X_train.shape
     # comma here necessary to unpack tuple (?,)
@@ -138,21 +138,23 @@ def train(X_train, y_train, X_valid, y_valid, X_test, y_test,
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
-        # initialize the global vars
-        sess.run(init)
 
         if not load:
+            # initialize the global vars
+            sess.run(init)
+
             # train a new model
             for _ in range(1000):
                 sess.run(objective, feed_dict={x: X_train, y_labels: y_train})
 
             # save the model
-            save_path = saver.save(sess, 'saved_models/iris_model')
+            save_path = saver.save(sess, 'saved_models/' + filename)
             print('Model saved in', save_path, end='\n\n')
         else:
             # import the model
-            saver = tf.train.import_meta_graph('saved_models/iris_model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('saved_models/'))
+            saver = tf.train.import_meta_graph('saved_models/' + 
+                filename + '.meta')
+            saver.restore(sess, 'saved_models/' + filename)
             print('Model loaded successfully!', end='\n\n')
 
         # print the model parameters
@@ -167,7 +169,7 @@ def train(X_train, y_train, X_valid, y_valid, X_test, y_test,
         print('Test accuracy:', end=' ')
         print(sess.run(accuracy, feed_dict={x: X_test, y_labels: y_test}))
 
-def main(load=False, visual=False):
+def main(load=False, visual=False, learning_rate=0.05, filename='iris_model'):
     # load and split the data
     df = load_iris('data/iris.csv')
     train_set, valid_set, test_set = train_valid_test_split(df)
@@ -182,17 +184,23 @@ def main(load=False, visual=False):
     X_test, y_test = label_split(test_set)
 
     # run the training/testing
-    train(X_train, y_train, X_valid, y_valid, X_test, y_test, load=load)
+    train(X_train, y_train, X_valid, y_valid, X_test, y_test, load=load,
+        learning_rate=learning_rate, filename=filename)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='iris.py',
         description='Train/test iris dataset using logistic regression')
 
     parser.add_argument('--load', dest='load', action='store_true',
-        help='load model rather than train (default: False)')
+        default=False, help='load model rather than train')
     parser.add_argument('--visual', dest='visual', action='store_true',
-        help='plot data and features prior to load/test (default: False)')
+        default=False, help='plot data and features prior to load/test')
+    parser.add_argument('--learning_rate', dest='learning_rate', type=float,
+        default=0.05, help='learning rate for GradientDescentOptimizer')
+    parser.add_argument('--filename', dest='filename', type=str,
+        default='iris_model', help='file to store/load model to/from')
 
     args = parser.parse_args()
 
-    main(load=args.load, visual=args.visual)
+    main(load=args.load, visual=args.visual, learning_rate=args.learning_rate,
+        filename=args.filename)
