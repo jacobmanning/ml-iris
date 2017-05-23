@@ -1,2 +1,3 @@
-/saved_models/*
-/tensorboard/*
+saved_models/*
+tensorboard/*
+!tensorboard/README.md
