@@ -38,19 +38,28 @@ optional arguments:
  --stddev STDDEV       standard deviation for random_normal init values
 ```
 
-#### Train a new model
+#### Train a new model 
++ Save to default filename, use default hyperparameters
 ```
 python iris.py
 ```
 
 #### Test a model
++ Load from default filename
 ```
 python iris.py --load
 ```
 
 #### Custom training
++ Use custom hyperparameters, save to custom file, show features before training
 ```
 python iris.py --visual --learning_rate 0.1 --filename my_model --stddev 0.5
+```
+
+#### Custom testing
++ Load from custom file
+```
+python iris.py --load --filename my_model
 ```
 
 ### Changelog
