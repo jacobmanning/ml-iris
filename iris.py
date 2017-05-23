@@ -10,6 +10,7 @@ splits data, trains model, tests model, saves model
 
 Uses TensorBoard to visualize the results
 '''
+
 import sys
 import argparse
 import numpy as np
