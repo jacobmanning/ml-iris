@@ -19,7 +19,7 @@ import seaborn as sns
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __author__ = 'Jacob Manning'
 __email__ = 'jacobmanning@pitt.edu'
 
@@ -120,6 +120,9 @@ def train(X_train, y_train, X_valid, y_valid, X_test, y_test,
     # comma here necessary to unpack tuple (?,)
     n_classes, = y_train[0].shape
 
+    logdir = 'tensorboard/' + filename
+    savedir = logdir + '/' + filename
+
     # placeholders for the input -> the features and label
     with tf.name_scope('input'):
         x = tf.placeholder(tf.float32, [None, n_features], name='x')
@@ -141,14 +144,14 @@ def train(X_train, y_train, X_valid, y_valid, X_test, y_test,
     with tf.name_scope('softmax_Wx_plus_b'):
         y = tf.nn.softmax(tf.matmul(x, W) + b)
         tf.summary.histogram('activations', y)
-
-    # use tf cross entropy function and reduce mean
-    with tf.name_scope('cross_entropy'):
-        cross_entropy = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits(labels=y_labels, logits=y))
-        tf.summary.scalar('cross_entropy', cross_entropy)
-
+        
     with tf.name_scope('train'):
+        with tf.name_scope('cross_entropy'):
+            # use tf cross entropy function and reduce mean
+            cross_entropy = tf.reduce_mean(
+                tf.nn.softmax_cross_entropy_with_logits(labels=y_labels, logits=y))
+            tf.summary.scalar('cross_entropy', cross_entropy)
+
         with tf.name_scope('optimizer'):
             # use gradient descent optimizer with given learning rate
             optimizer = tf.train.GradientDescentOptimizer(learning_rate)
@@ -166,7 +169,8 @@ def train(X_train, y_train, X_valid, y_valid, X_test, y_test,
         with tf.name_scope('accuracy'):
             # calculate the model accuracy on the set
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
+            tf.summary.scalar('accuracy', accuracy)
+            
     with tf.name_scope('saver'):
         # saver node to save/restore weights/biases
         saver = tf.train.Saver()
@@ -184,38 +188,34 @@ def train(X_train, y_train, X_valid, y_valid, X_test, y_test,
 
         if not load:
             # writers for tensorboard
-            train_writer = tf.summary.FileWriter('tensorboard/' + 
-                filename + '/train', sess.graph)
-            test_writer = tf.summary.FileWriter('tensorboard/' + 
-                filename + '/test')
+            writer = tf.summary.FileWriter(logdir)
+            writer.add_graph(sess.graph)
 
             # train a new model
             for i in range(1000):
                 if i % 50 == 0:
                     summary, acc = sess.run([merged, accuracy], 
                         feed_dict={x: X_valid, y_labels: y_valid})
-                    test_writer.add_summary(summary, i)
 
+                    writer.add_summary(summary, i)
                     print('Validation set accuracy at step {}: {}'.format(i, acc))
                 else:
                     summary, _ = sess.run([merged, objective],
                         feed_dict={x: X_train, y_labels: y_train})
-                    train_writer.add_summary(summary, i)
+                    writer.add_summary(summary, i)
 
             print('\nView tensorboard with:')
-            print('tensorboard --logdir=tensorboard/' + filename, end='\n\n')
+            print('tensorboard --logdir=' + logdir, end='\n\n')
 
-            train_writer.close()
-            test_writer.close()
+            writer.close()
 
             # save the model
-            save_path = saver.save(sess, 'saved_models/' + filename)
+            save_path = saver.save(sess, savedir)
             print('Model saved in', save_path, end='\n\n')
         else:
             # import the model
-            saver = tf.train.import_meta_graph('saved_models/' + 
-                filename + '.meta')
-            saver.restore(sess, 'saved_models/' + filename)
+            saver = tf.train.import_meta_graph(savedir + '.meta')
+            saver.restore(sess, savedir)
             print('Model loaded successfully!', end='\n\n')
 
             # print the model parameters
@@ -247,10 +247,10 @@ def main(load=False, visual=False, learning_rate=0.05,
 
     # delete previous tensorboard files
     if not load:
-        tb_dir = 'tensorboard/' + filename
+        logdir = 'tensorboard/' + filename
 
-        if tf.gfile.Exists(tb_dir):
-            tf.gfile.DeleteRecursively(tb_dir)
+        if tf.gfile.Exists(logdir):
+            tf.gfile.DeleteRecursively(logdir)
 
     # run the training/testing
     train(X_train, y_train, X_valid, y_valid, X_test, y_test, load=load,
