@@ -63,6 +63,8 @@ python iris.py --load --filename my_model
 ```
 
 ### Changelog
++ 0.2.1
+  * Rework tensorboard and model saving directory
 + 0.2.0
   * Add TensorBoard support
   * Show validation set accuracy during training
