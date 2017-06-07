@@ -118,7 +118,8 @@ def train(X_train, y_train, X_valid, y_valid, X_test, y_test,
     # parameters for size of W, b, x, y
     n_samples, n_features = X_train.shape
     # comma here necessary to unpack tuple (?,)
-    n_classes, = y_train[0].shape
+    # n_classes, = y_train[0].shape
+    _, n_classes = y_train.shape
 
     logdir = 'tensorboard/' + filename
     savedir = logdir + '/' + filename
