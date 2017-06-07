@@ -1,2 +1,4 @@
 tensorboard/*
 !tensorboard/README.md
+__pycache__/*
+
